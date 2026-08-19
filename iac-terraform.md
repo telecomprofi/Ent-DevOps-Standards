@@ -9,13 +9,14 @@ variable "common_tags" {
   description = "Common tags to apply to all resources"
   type        = map(string)
   default = {
-    CostCentre  = "tech-services"
-    Project     = "CompName-platform"
-    Owner       = "platform-services"
-    Team        = "platform-services" # for DataDog Security center
-    Service     = "sonarqube" # for DataDog Security center
-    Env         = "uat"  # for DataDog Security center
-    Environment = "staging"
+    Organization = empeek
+    CostCentre   = "tech-services"
+    Project      = "CompName-platform"
+    Owner        = "platform-services"
+    Team         = "platform-services" # for DataDog Security center
+    Service      = "sonarqube" # for DataDog Security center
+    Env          = "uat"  # for DataDog Security center
+    Environment  = "staging"
   }
 }
 ```
@@ -72,3 +73,32 @@ bckstg-be-prod-rds-db-001
 
 Total resource name have to be shorter than 47 symbols.
 
+## Use repository's metadata from catalog-info.yaml from root directory
+
+Each IaC repository has in it root folder metadata file where Items like Project(Name), CostCentre, Owner, Team, Service(name) or Application/Component (name), environments (names) could be extracted to populate mandatory tags described above.
+
+## Use directory name and/or .tfvars files to poupulate Environment/Env tag(s)
+
+Each Infrastructure environment directory is either named with Env name (e.g. qa, staging, production) or has corresponding file with variables that contain env name.
+
+## Precedence of metadata sources for tagging
+Use following precedence: 
+1. Top priority: catalog-info.yaml
+2. If catalog-info.yaml has no project/Application/Component name or does not exist, use repository name as Project name
+3. Use directory name to populate Environment/Env tag if that conforms to one of the below: production (or prod), staging (or uat), dev (or development), qa (or test). 
+4. If directory is named other than variants listed in section 3., use ,tfvars file for env name instead.
+5. If .tfvars file is not available use 'uat' for Env tag and 'staging' for Environment tag.
+
+## Prepend Project/Application/Component tag with organization's short name when it is available
+
+1. If Organization name is available in catalog-info.yaml use it to prepend value of Project, and use colon as delimiter: 
+e.g. 
+```
+Project:"empeek:platform"
+```
+
+2. If organization name is not available, use GitHub repository slug for org. name
+e.g. for 'https://github.com/myenterprise/platform' use 'myenterprise' as short org. name:
+```
+Project:"myenterprise:platform"
+```
